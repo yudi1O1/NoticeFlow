@@ -1,46 +1,28 @@
-import type { FormEvent, ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 
-import { Button } from "@/components/ui/Button";
-import {
-  CATEGORY_LABELS,
-  NOTICE_CATEGORIES,
-  NOTICE_PRIORITIES,
-  PRIORITY_LABELS,
-} from "@/constants/notices";
-import { ApiError } from "@/services/notices";
-import type { Notice, NoticeFormValues, NoticeInput } from "@/types/notice";
-import { toDateInputValue } from "@/utils/date";
-import { flattenFieldErrors } from "@/utils/errors";
+const categories = [
+  { label: "Exam", value: "EXAM" },
+  { label: "Event", value: "EVENT" },
+  { label: "General", value: "GENERAL" },
+];
 
-type NoticeFormProps = {
-  notice: Notice | null;
-  isOpen: boolean;
-  isSaving: boolean;
-  onClose: () => void;
-  onSubmit: (values: NoticeInput) => Promise<void>;
-};
+const priorities = [
+  { label: "Normal", value: "NORMAL" },
+  { label: "Urgent", value: "URGENT" },
+];
 
-const defaultValues: NoticeFormValues = {
-  title: "",
-  body: "",
-  category: "GENERAL",
-  priority: "NORMAL",
-  publishDate: toDateInputValue(new Date()),
-  imageUrl: "",
-};
-
-export function NoticeForm({
-  notice,
-  isOpen,
-  isSaving,
-  onClose,
-  onSubmit,
-}: NoticeFormProps) {
-  const initialValues = useMemo<NoticeFormValues>(() => {
+export function NoticeForm({ notice, isSaving, onClose, onSubmit }) {
+  const [values, setValues] = useState(() => {
     if (!notice) {
-      return defaultValues;
+      return {
+        title: "",
+        body: "",
+        category: "GENERAL",
+        priority: "NORMAL",
+        publishDate: toDateInputValue(new Date()),
+        imageUrl: "",
+      };
     }
 
     return {
@@ -49,44 +31,42 @@ export function NoticeForm({
       category: notice.category,
       priority: notice.priority,
       publishDate: toDateInputValue(notice.publishDate),
-      imageUrl: notice.imageUrl ?? "",
+      imageUrl: notice.imageUrl || "",
     };
-  }, [notice]);
+  });
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState(null);
 
-  const [values, setValues] = useState<NoticeFormValues>(initialValues);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-
-  if (!isOpen) {
-    return null;
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event) {
     event.preventDefault();
     setFieldErrors({});
     setFormError(null);
 
+    const payload = {
+      ...values,
+      imageUrl: values.imageUrl.trim() || null,
+    };
+
     try {
-      await onSubmit({
-        ...values,
-        imageUrl: values.imageUrl.trim() || null,
-      });
+      await onSubmit(payload);
     } catch (error) {
-      if (error instanceof ApiError) {
-        setFieldErrors(flattenFieldErrors(error.details));
-        setFormError(error.message);
-        return;
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to save the notice. Please try again.",
+      );
+
+      if (error instanceof Error && error.details) {
+        setFieldErrors(
+          Object.fromEntries(
+            Object.entries(error.details).map(([field, messages]) => [
+              field,
+              messages[0] || "Invalid value.",
+            ]),
+          ),
+        );
       }
-
-      setFormError("Unable to save the notice. Please try again.");
     }
-  }
-
-  function updateValue<K extends keyof NoticeFormValues>(
-    key: K,
-    value: NoticeFormValues[K],
-  ) {
-    setValues((current) => ({ ...current, [key]: value }));
   }
 
   const title = notice ? "Edit notice" : "Add notice";
@@ -111,15 +91,15 @@ export function NoticeForm({
               Use the same form for new notices and updates.
             </p>
           </div>
-          <Button
+          <button
             aria-label="Close form"
-            className="h-10 w-10 px-0"
+            className="btn-ghost h-10 w-10 px-0"
             disabled={isSaving}
             onClick={onClose}
-            variant="ghost"
+            type="button"
           >
             <X className="h-5 w-5" />
-          </Button>
+          </button>
         </div>
 
         <form className="space-y-5 px-5 py-5 sm:px-6" onSubmit={handleSubmit}>
@@ -134,7 +114,9 @@ export function NoticeForm({
               className="form-input"
               id="title"
               maxLength={140}
-              onChange={(event) => updateValue("title", event.target.value)}
+              onChange={(event) =>
+                setValues({ ...values, title: event.target.value })
+              }
               placeholder="Mid-term exam schedule"
               required
               value={values.title}
@@ -146,7 +128,9 @@ export function NoticeForm({
               className="form-input min-h-36 resize-y"
               id="body"
               maxLength={5000}
-              onChange={(event) => updateValue("body", event.target.value)}
+              onChange={(event) =>
+                setValues({ ...values, body: event.target.value })
+              }
               placeholder="Share the full notice details..."
               required
               value={values.body}
@@ -163,13 +147,13 @@ export function NoticeForm({
                 className="form-input"
                 id="category"
                 onChange={(event) =>
-                  updateValue("category", event.target.value as NoticeFormValues["category"])
+                  setValues({ ...values, category: event.target.value })
                 }
                 value={values.category}
               >
-                {NOTICE_CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {CATEGORY_LABELS[category]}
+                {categories.map((category) => (
+                  <option key={category.value} value={category.value}>
+                    {category.label}
                   </option>
                 ))}
               </select>
@@ -184,13 +168,13 @@ export function NoticeForm({
                 className="form-input"
                 id="priority"
                 onChange={(event) =>
-                  updateValue("priority", event.target.value as NoticeFormValues["priority"])
+                  setValues({ ...values, priority: event.target.value })
                 }
                 value={values.priority}
               >
-                {NOTICE_PRIORITIES.map((priority) => (
-                  <option key={priority} value={priority}>
-                    {PRIORITY_LABELS[priority]}
+                {priorities.map((priority) => (
+                  <option key={priority.value} value={priority.value}>
+                    {priority.label}
                   </option>
                 ))}
               </select>
@@ -207,7 +191,7 @@ export function NoticeForm({
                 className="form-input"
                 id="publishDate"
                 onChange={(event) =>
-                  updateValue("publishDate", event.target.value)
+                  setValues({ ...values, publishDate: event.target.value })
                 }
                 required
                 type="date"
@@ -224,7 +208,9 @@ export function NoticeForm({
               <input
                 className="form-input"
                 id="imageUrl"
-                onChange={(event) => updateValue("imageUrl", event.target.value)}
+                onChange={(event) =>
+                  setValues({ ...values, imageUrl: event.target.value })
+                }
                 placeholder="https://example.com/banner.jpg"
                 type="url"
                 value={values.imageUrl}
@@ -233,12 +219,17 @@ export function NoticeForm({
           </div>
 
           <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
-            <Button disabled={isSaving} onClick={onClose} variant="secondary">
+            <button
+              className="btn-secondary"
+              disabled={isSaving}
+              onClick={onClose}
+              type="button"
+            >
               Cancel
-            </Button>
-            <Button disabled={isSaving} type="submit">
+            </button>
+            <button className="btn-primary" disabled={isSaving} type="submit">
               {isSaving ? "Saving..." : notice ? "Save changes" : "Create notice"}
-            </Button>
+            </button>
           </div>
         </form>
       </div>
@@ -246,15 +237,7 @@ export function NoticeForm({
   );
 }
 
-type FieldProps = {
-  children: ReactNode;
-  error?: string;
-  hint?: string;
-  htmlFor: string;
-  label: string;
-};
-
-function Field({ children, error, hint, htmlFor, label }: FieldProps) {
+function Field({ children, error, hint, htmlFor, label }) {
   return (
     <label className="block" htmlFor={htmlFor}>
       <span className="flex items-center justify-between gap-3 text-sm font-semibold text-slate-800">
@@ -265,4 +248,9 @@ function Field({ children, error, hint, htmlFor, label }: FieldProps) {
       {error ? <span className="mt-2 block text-sm text-red-600">{error}</span> : null}
     </label>
   );
+}
+
+function toDateInputValue(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
 }

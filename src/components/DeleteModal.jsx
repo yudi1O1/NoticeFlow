@@ -1,21 +1,6 @@
 import { AlertTriangle } from "lucide-react";
 
-import { Button } from "@/components/ui/Button";
-import type { Notice } from "@/types/notice";
-
-type ConfirmDialogProps = {
-  notice: Notice | null;
-  isDeleting: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-};
-
-export function ConfirmDialog({
-  notice,
-  isDeleting,
-  onCancel,
-  onConfirm,
-}: ConfirmDialogProps) {
+export function DeleteModal({ notice, isDeleting, onCancel, onConfirm }) {
   if (!notice) {
     return null;
   }
@@ -37,18 +22,28 @@ export function ConfirmDialog({
               Delete this notice?
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              This will permanently remove &quot;{notice.title}&quot;. This action cannot
-              be undone.
+              This will permanently remove &quot;{notice.title}&quot;. This action
+              cannot be undone.
             </p>
           </div>
         </div>
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <Button disabled={isDeleting} onClick={onCancel} variant="secondary">
+          <button
+            className="btn-secondary"
+            disabled={isDeleting}
+            onClick={onCancel}
+            type="button"
+          >
             Cancel
-          </Button>
-          <Button disabled={isDeleting} onClick={onConfirm} variant="danger">
+          </button>
+          <button
+            className="btn-danger"
+            disabled={isDeleting}
+            onClick={onConfirm}
+            type="button"
+          >
             {isDeleting ? "Deleting..." : "Delete notice"}
-          </Button>
+          </button>
         </div>
       </div>
     </div>
