@@ -118,7 +118,7 @@ export default function HomePage() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-600">
-              Reno Platforms Engineering
+              Reno Platforms
             </p>
             <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl">
               NoticeFlow
