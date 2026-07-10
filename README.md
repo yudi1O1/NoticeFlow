@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-NoticeFlow is a simple notice board built for the Reno Platforms web development assignment. It supports full create, read, update, and delete flows with Prisma persistence, server-side validation, and database-level urgent-first ordering.
+NoticeFlow is a simple notice board. It supports full create, read, update, and delete flows with Prisma persistence, server-side validation, and database-level urgent-first ordering.
 
 ## Features
 
@@ -20,7 +20,7 @@ NoticeFlow is a simple notice board built for the Reno Platforms web development
 - React
 - JavaScript
 - Prisma ORM
-- MySQL-compatible hosted database
+- MySQL-compatible hosted database, AWS Aurora RDS
 - Tailwind CSS
 - Zod validation
 - Vercel deployment
@@ -91,15 +91,20 @@ Open `http://localhost:3000`.
 
 ## Deployment Steps
 
-1. Create a hosted MySQL-compatible database.
+1. Create a hosted MySQL-compatible database, such as TiDB Cloud or Amazon Aurora RDS.
 2. Add `DATABASE_URL` to Vercel environment variables.
 3. Run `npm run prisma:deploy`.
 4. Deploy with `npx vercel --prod`.
 
 ## AI Usage
 
-AI was used to analyze the assignment, implement and refactor the app, run checks, and update documentation. The final implementation was reviewed against the assignment requirements.
+AI was used to analyze the assignment, design the UI layout and styling, implement and refactor the app, run checks, and update documentation. The final implementation was reviewed against the assignment requirements.
 
 ## One Improvement With More Time
 
-Add pagination once the notice list grows large.
+- Add urgency filter buttons, such as `All`, `Urgent`, and `Normal`.
+- Add category filters for `Exam`, `Event`, and `General`.
+- Add search by notice title or body.
+- Add date-range filtering for publish dates.
+- Add active filter chips so users can clearly see applied filters.
+- Add pagination once the notice list grows large.
